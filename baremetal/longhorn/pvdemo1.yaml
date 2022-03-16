@@ -1,0 +1,59 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: pvdemo
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvdemo1-pvc
+  namespace: pvdemo
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pvdemo1
+  namespace: pvdemo
+  labels:
+    app: pvdemo1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pvdemo1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: pvdemo1
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: pvdemo1
+        image: nginx:stable-alpine
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+              - ls
+              - /data/lost+found
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        ports:
+        - containerPort: 80
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: pvdemo1-pvc
+      
