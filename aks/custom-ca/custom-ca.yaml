@@ -1,0 +1,93 @@
+# Lets have a dedicated namespace
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: custom-ca
+---
+# This config map just contains the public part of our custom Certification Authority encoded in Base64
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ca-certificate
+  namespace: custom-ca
+data:
+  ca.crt: |+
+    -----BEGIN CERTIFICATE-----
+    MIIB6TCCAY+gAwIBAgIQM+aqTdXGIqJF8b6pJZcF9DAKBggqhkjOPQQDAjBNMRIw
+    EAYKCZImiZPyLGQBGRYCcGwxGDAWBgoJkiaJk/IsZAEZFghmYWJyaWthbTEdMBsG
+    A1UEAxMUZmFicmlrYW0tRkFCLURDMDEtQ0EwHhcNMjIwMTA3MTMxMDE3WhcNMjcw
+    MTA3MTMyMDE0WjBNMRIwEAYKCZImiZPyLGQBGRYCcGwxGDAWBgoJkiaJk/IsZAEZ
+    FghmYWJyaWthbTEdMBsGA1UEAxMUZmFicmlrYW0tRkFCLURDMDEtQ0EwWTATBgcq
+    hkjOPQIBBggqhkjOPQMBBwNCAAQfGNw9OxC+DeLlv6N0zCApskBZhcwLoAPbPH6u
+    D4Wee74O1JGxU1pW1Jb9+Gn7hU017Pp6KTKAeowS/BsfbRFTo1EwTzALBgNVHQ8E
+    BAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUtRyZU2Wd8TDuS3CReikS
+    TnEm74EwEAYJKwYBBAGCNxUBBAMCAQAwCgYIKoZIzj0EAwIDSAAwRQIhAIfzcCxE
+    k1OsE9SlwFixX0Eb2OfNzegTVILdOfrRo2ekAiBGvrJQOfRLZvln71CwqM1WrKF7
+    fJRNMd6kYfbY29pQrA==
+    -----END CERTIFICATE-----
+---
+# This config map contains the script that is executed on the HOST! (not in container)
+# We use standard, recommended way of adding custom CAs:
+# 1. Write the CA certificate to /usr/local/share/ca-certificates folder
+# 2. Force CA list to be refreshed using "update-ca-certificates"
+# 3. containerd service needs to be restarted to "see" updated CA list
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: setup-script
+  namespace: custom-ca
+data:
+  setup.sh: |
+    echo "Write custom CA certificate to /usr/local/share/ca-certificates/ca.crt"
+    echo "$TRUSTED_CERT" > /usr/local/share/ca-certificates/ca.crt
+    echo "Update CA list"
+    update-ca-certificates
+    echo "Restart containerd"
+    systemctl restart containerd
+---
+# This is our deamonset. It contains two containers. 
+# The actual work is done in the initContainer that runs before the main container.
+# The main container actually does nothing. It is only there to keep pod running and not exit immediately.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  namespace: custom-ca
+  name: custom-ca-ds
+  labels:
+    k8s-app: custom-ca-ds
+spec:
+  selector:
+    matchLabels:
+      k8s-app: custom-ca-ds
+  template:
+    metadata:
+      labels:
+        k8s-app: custom-ca-ds
+    spec:
+      hostPID: true # allows us to access processes on the host
+      hostNetwork: true
+      initContainers:  # init containter runs before actual container and in our case it does all real work
+      - name: init-node
+        # This is where all magic happens. nsenter command allows to enter the namespace of another process and execute as we are that process. 
+        # We are accessing process with ID=1 which is the "init" process - the very first process that kernel (kernel pid=0) creates.
+        # To make this work we need our container to run as root (securityContext: priviledged) and with access to host processes (hostPID: true)
+        # Our init container does just one thing - executes setup.sh script supplied via configmap.
+        command: ["nsenter"]
+        args: ["--mount=/proc/1/ns/mnt", "--", "sh", "-c", "$(SETUP_SCRIPT)"]
+        image: ubuntu
+        env:
+        - name: TRUSTED_CERT
+          valueFrom:
+            configMapKeyRef:
+              name: ca-certificate
+              key: ca.crt
+        - name: SETUP_SCRIPT
+          valueFrom:
+            configMapKeyRef:
+              name: setup-script
+              key: setup.sh
+        securityContext:
+          privileged: true # we need root access, as we are updating ca cert list as well as restarting services
+      containers:  # This is our main container. In our case all work was done in init container. We do nothing here, but we need to keep pod running and not exit immediately. So we use pause.
+      - name: wait
+        image: kubernetes/pause
