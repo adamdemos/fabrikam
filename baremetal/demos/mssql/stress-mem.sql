@@ -1,9 +1,9 @@
 USE [pubs]
 GO
-DECLARE @count INT, @t DATETIME, @F BIGINT;
+DECLARE @count INT
 SET @count = 1;
     
-WHILE @count<= 6
+WHILE @count<= 10000
 BEGIN
    SELECT count(*)
 	from TITLES t
@@ -16,13 +16,6 @@ BEGIN
 	left outer join sales s on s.title_id = t.title_id
 	left outer join stores st on s.stor_id = st.stor_id
 	left outer join discounts d on d.stor_id = st.stor_id
-
-	-- hit CPU for 10 seconds
-	SET @T = GETDATE();
-	WHILE DATEADD(SECOND,10,@T)>GETDATE()
-	BEGIN
-		SET @F=POWER(2,30);
-	END
 
    SET @count = @count + 1;
 END;
