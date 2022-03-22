@@ -6,9 +6,9 @@ metadata:
   name: service-b-ingress
   namespace: ingress-demo
   labels:
-    external-dns: apps.fabrikam.pl
+    external-dns: apps.fabrikam.pl  # this corresponds to labelFilter in External DNS config allowing to target specific External DNS instance
 spec:
-  ingressClassName: ingress-demo-controller
+  ingressClassName: ingress-demo-controller # this allows us to use specific Ingress Controller
   rules:
   - host: demo1.apps.fabrikam.pl
     http:
