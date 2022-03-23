@@ -4,9 +4,9 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /   #new 
   name: service-b-ingress
-  namespace: ingress-demo
+  namespace: apps-fabrikam-pl
 spec:
-  ingressClassName: ingress-demo-controller # this allows us to use specific Ingress Controller
+  ingressClassName: ingress-controller-apps-fabrikam-pl # this allows us to use specific Ingress Controller
   rules:
   - http:
       paths:

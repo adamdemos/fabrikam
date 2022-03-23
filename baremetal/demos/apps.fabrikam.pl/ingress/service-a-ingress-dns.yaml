@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /   #new 
+  name: service-a-ingress
+  namespace: apps-fabrikam-pl
+  labels:
+    external-dns: apps.fabrikam.pl  # this corresponds to labelFilter in External DNS config allowing to target specific External DNS instance
+spec:
+  ingressClassName: ingress-controller-apps-fabrikam-pl # this allows us to use specific Ingress Controller
+  rules:
+  - host: demo1.apps.fabrikam.pl
+    http:
+      paths:
+      - path: /a
+        pathType: Prefix
+        backend:
+          service:
+            name: service-a
+            port:
+              number: 80
