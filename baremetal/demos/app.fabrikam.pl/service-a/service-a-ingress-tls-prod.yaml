@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /   #new 
+    cert-manager.io/cluster-issuer: "app-fabrikam-pl-letsencrypt-prod"
+  name: service-a-ingress
+  namespace: app-fabrikam-pl-a
+  labels:
+    external-dns: app.fabrikam.pl  # this corresponds to labelFilter in External DNS config allowing to target specific External DNS instance
+spec:
+  ingressClassName: ingress-controller-app-fabrikam-pl # this allows us to use specific Ingress Controller
+  tls:
+  - hosts:
+    - demo1.app.fabrikam.pl
+    secretName: demo1.app.fabrikam.pl # this will be the name of created certificate 
+  rules:
+  - host: demo1.app.fabrikam.pl
+    http:
+      paths:
+      - path: /a
+        pathType: Prefix
+        backend:
+          service:
+            name: service-a
+            port:
+              number: 80

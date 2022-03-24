@@ -1,0 +1,33 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: app-fabrikam-pl-letsencrypt-staging
+spec:
+  acme:
+    # The ACME STAGING server URL
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    # Email address used for ACME registration
+    email: adam.demos@outlook.com
+    # Name of a secret used to store the ACME account private key
+    privateKeySecretRef:
+      name: app-fabrikam-pl-letsencrypt-staging
+    solvers:
+    - dns01:
+        azureDNS:
+          # AzureAD service principal appId
+          clientID: 31be3b95-9755-45f1-9c39-6f396f4e2f0d
+          # AzureAD service principal password has been stored in Kubernetes secret
+          clientSecretSecretRef:
+          # The following is the secret we created in Kubernetes. Issuer will use this to present challenge to Azure DNS.
+            name: app-fabrikam-pl-azure-sp-pass
+            key: client-secret
+          # Azure subscription id
+          subscriptionID: dd54c00a-ece0-443a-b1fd-e149c305dd8d
+          # AzureAD tenant id
+          tenantID: 9116b818-f66e-46c4-be6b-79d931b8286b
+          # Azure resource group where DNS Zone is crrated
+          resourceGroupName: AppFabrikamPlRG
+          # Azure DNS Zone name
+          hostedZoneName: app.fabrikam.pl
+          # Azure Cloud Environment, default to AzurePublicCloud
+          environment: AzurePublicCloud
