@@ -1,0 +1,18 @@
+configInline:
+  address-pools:
+   - name: default
+     protocol: layer2
+     addresses:
+     - 10.99.200.111-10.99.200.139
+   - name: sys
+     protocol: layer2
+     addresses:
+     - 10.99.200.80-10.99.200.89
+   - name: app
+     protocol: layer2
+     addresses:
+     - 10.99.200.90-10.99.200.99
+   - name: app2
+     protocol: layer2
+     addresses:
+     - 10.99.200.100-10.99.200.110
