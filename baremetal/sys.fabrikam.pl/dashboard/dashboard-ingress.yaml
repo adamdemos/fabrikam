@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: "sys-fabrikam-pl-letsencrypt-prod" # use production issuer for sys.fabrikam.pl
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+  name: dashboard-ingress
+  namespace: kubernetes-dashboard
+  labels:
+    external-dns: sys.fabrikam.pl  # use external dns for sys.fabrikam.pl
+spec:
+  ingressClassName: sys-fab-pl-ing-ctrl # use specific Ingress Controller
+  tls:
+  - hosts:
+    - dashboard.sys.fabrikam.pl
+    secretName: dashboard.sys.fabrikam.pl # this will be the name of created certificate 
+  rules:
+  - host: dashboard.sys.fabrikam.pl
+    http:
+      paths:
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: kubernetes-dashboard
+            port:
+              number: 443
