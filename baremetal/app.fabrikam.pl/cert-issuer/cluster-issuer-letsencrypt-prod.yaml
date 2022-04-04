@@ -19,7 +19,7 @@ spec:
           # AzureAD service principal password has been stored in Kubernetes secret
           clientSecretSecretRef:
           # The following is the secret we created in Kubernetes. Issuer will use this to present challenge to Azure DNS.
-            name: app-fabrikam-pl-azure-sp-pass
+            name: azure-pass-app-fabrikam-pl
             key: client-secret
           # Azure subscription id
           subscriptionID: dd54c00a-ece0-443a-b1fd-e149c305dd8d
