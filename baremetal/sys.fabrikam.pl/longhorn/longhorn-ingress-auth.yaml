@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: "sys-fabrikam-pl-letsencrypt-prod" # use production cert issuer for sys.fabrikam.pl
+    # type of authentication
+    nginx.ingress.kubernetes.io/auth-type: basic
+    # name of the secret that contains the user/password definitions
+    nginx.ingress.kubernetes.io/auth-secret: longhorn-auth
+    # message to display with an appropriate context why the authentication is required
+    nginx.ingress.kubernetes.io/auth-realm: 'Authentication required to access Longhorn UI'
+  name: longhorn-frontend-ingress
+  namespace: longhorn-system
+  labels:
+    external-dns: sys.fabrikam.pl  # use external dns for sys.fabrikam.pl
+spec:
+  ingressClassName: sys-fab-pl-ing-ctrl # use specific Ingress Controller
+  tls:
+  - hosts:
+    - longhorn.sys.fabrikam.pl
+    secretName: longhorn.sys.fabrikam.pl # this will be the name of created certificate 
+  rules:
+  - host: longhorn.sys.fabrikam.pl
+    http:
+      paths:
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: longhorn-frontend
+            port:
+              number: 80
