@@ -1,0 +1,5 @@
+clusterIssuer: app-fabrikam-pl-letsencrypt-prod
+externalDnsLabel: app.fabrikam.pl
+ingressControllerClassName: ingress-controller-app-fabrikam-pl
+dnsHostName: demo1.app.fabrikam.pl
+urlPrefix: /

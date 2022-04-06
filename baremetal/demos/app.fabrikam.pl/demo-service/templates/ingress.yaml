@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    {{- if ne .Values.urlPrefix "/" }}
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    {{- end }}
+    cert-manager.io/cluster-issuer: {{ quote .Values.clusterIssuer }}
+  name: {{ .Release.Name }}-ingress
+  labels:
+    external-dns: {{ .Values.externalDnsLabel }}  # this corresponds to labelFilter in External DNS config allowing to target specific External DNS instance
+spec:
+  ingressClassName: {{ .Values.ingressControllerClassName }} # this allows us to use specific Ingress Controller
+  tls:
+  - hosts:
+    - {{ .Values.dnsHostName }}
+    secretName: {{ .Values.dnsHostName }} # this will be the name of created certificate 
+  rules:
+  - host: {{ .Values.dnsHostName }}
+    http:
+      paths:
+      - path: {{ default "/" .Values.urlPrefix }}
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-service
+            port:
+              number: 80
