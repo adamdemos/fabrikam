@@ -43,10 +43,10 @@ spec:
         resources:
           requests:
             memory: 800Mi
-            cpu: 50m
+            cpu: 100m
           limits:
-            memory: 1000Mi
-            cpu: 2000m
+            memory: 2000Mi
+            cpu: 1000m
       volumes:
       - name: mssqldb
         persistentVolumeClaim:
