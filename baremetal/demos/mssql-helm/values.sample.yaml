@@ -1,0 +1,19 @@
+# MS SQL password for SA account
+saPassword: aaa111!!!
+
+# Persistent storage class name. Do not specify to use default one
+#storageClassName: ""
+
+# Requested PVC size
+storageSize: "1Gi"
+
+# service port type
+servicePortType: LoadBalancer
+
+# CPU/memory requests and limits
+requests:
+  memory: "500Mi"
+  cpu: "50m"
+limits:
+  memory: "2048Mi"
+  cpu: "1000m"
