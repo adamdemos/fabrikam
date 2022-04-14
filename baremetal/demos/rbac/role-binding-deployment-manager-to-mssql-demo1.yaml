@@ -1,0 +1,13 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: mssql-demo-deployment-manager-binding-to-mssql-demo1
+  namespace: mssql-demo1
+subjects:
+- kind: User
+  name: "Boba Fett"
+  apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: mssql-demo-deployment-manager
+  apiGroup: ""
