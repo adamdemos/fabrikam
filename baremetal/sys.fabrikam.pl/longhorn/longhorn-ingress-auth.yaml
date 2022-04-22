@@ -9,10 +9,10 @@ metadata:
     nginx.ingress.kubernetes.io/auth-secret: longhorn-auth
     # message to display with an appropriate context why the authentication is required
     nginx.ingress.kubernetes.io/auth-realm: 'Authentication required to access Longhorn UI'
+    external-dns: sys.fabrikam.pl  # use external dns for sys.fabrikam.pl
   name: longhorn-frontend-ingress
   namespace: longhorn-system
-  labels:
-    external-dns: sys.fabrikam.pl  # use external dns for sys.fabrikam.pl
+
 spec:
   ingressClassName: sys-fab-pl-ing-ctrl # use specific Ingress Controller
   tls:

@@ -1,0 +1,105 @@
+replicaCount: 2
+
+nameOverride: dex # this needs to match the k8s-app label selector in the affinity section below
+
+# This means the DEX service will use HTTPS (besides exposing DEX externally via ingress)
+#https:
+#  enabled: true
+
+# We need to pass AD domain Certification Authority certificate so DEX can use secure LDAPS to connect to AD LDAP server
+volumes:
+- name: ad-ca
+  secret:
+    secretName: active-directory-ca
+volumeMounts:
+- name: ad-ca
+  readOnly: true
+  mountPath: /certs
+
+ingress:
+  enabled: true
+  className: sys-fab-pl-ing-ctrl # use specific Ingress Controller
+  annotations:
+    cert-manager.io/cluster-issuer: "sys-fabrikam-pl-letsencrypt-prod" # use production cert issuer for sys.fabrikam.pl
+    external-dns: sys.fabrikam.pl  # use external dns for sys.fabrikam.pl
+  tls:
+  - hosts:
+    - dex.sys.fabrikam.pl
+    secretName: dex.sys.fabrikam.pl # this will be the name of created certificate 
+  hosts:
+  - host: dex.sys.fabrikam.pl
+    paths:
+    - pathType: ImplementationSpecific
+      path: /
+
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchLabels:
+          k8s-app: dex # We can't use variables in values file (Helm limitation) so we need to hardcode it and make sure it matches the app label. See nameOverride parameter above
+      topologyKey: "kubernetes.io/hostname"
+
+config:
+  # Since we specified internal DEX service shall use HTTPS, here we specify certificate, that is mapped via volume/volumemount above
+  #web:
+  #  tlsCert: /certs/tls.crt
+  #  tlsKey: /certs/tls.key
+
+  storage:
+    type: kubernetes
+    config: 
+      inCluster: true
+
+  issuer: https://dex.sys.fabrikam.pl
+
+  connectors:
+  - type: ldap
+    id: ldap
+    name: ldap
+    config:
+      # for plain LDAP
+      #host: fab-dc01-fabrikam.pl:389
+      #insecureNoSSL: true
+      #insecureSkipVerify: true
+      # Secure LDAPS
+      host: fab-dc01.fabrikam.pl:636
+      rootCA: /certs/ad-ca.crt
+      insecureNoSSL: false
+      insecureSkipVerify: false
+
+      bindDN: CN=LDAP reader,ou=Service accounts,ou=Fabrikam,dc=fabrikam,dc=pl
+      bindPW: Hiro2020!
+      # Config for user search
+      userSearch:
+        # Start search in this OU
+        baseDN: ou=Users,ou=Fabrikam,dc=fabrikam,dc=pl
+        # filter for users accounty objects
+        filter: "(objectClass=person)"
+        # username attribute used for comparing user entries. This will be translated and combined with the other filter as "(<attr>=<username>)"
+        username: sAMAccountName
+        # The following three fields are direct mappings of attributes on the user entry. String representation of the user.
+        idAttr: sAMAccountName
+        # Required. Attribute to map to Email.
+        emailAttr: userPrincipalName
+        # Maps to display name of users. No default value.
+        nameAttr: displayName
+
+        # Config for group search
+        groupSearch:
+          # Start search in this OU
+          baseDN: ou=Groups,ou=Fabrikam,dc=fabrikam,dc=pl
+          # filter for group objects
+          filter: "(objectClass=group)"
+          # Following two fields are used to match a user to a group.
+          # They add an additional requirement to the filter that an attribute in the group must match the user's attribute value.
+          userAttr: distinguishedName
+          groupAttr: member
+          nameAttr: cn
+  
+  staticClients:
+  - id: kubernetes
+    redirectURIs:
+    - 'http://localhost:8000'
+    name: 'Kubernetes'
+    secret: ZXhhbXBsZS1hcHAtc2VjcmV0

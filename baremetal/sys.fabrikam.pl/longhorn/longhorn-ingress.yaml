@@ -3,10 +3,9 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: "sys-fabrikam-pl-letsencrypt-prod" # use production cert issuer for sys.fabrikam.pl
+    external-dns: sys.fabrikam.pl  # use external dns for sys.fabrikam.pl
   name: longhorn-frontend-ingress
   namespace: longhorn-system
-  labels:
-    external-dns: sys.fabrikam.pl  # use external dns for sys.fabrikam.pl
 spec:
   ingressClassName: sys-fab-pl-ing-ctrl # use specific Ingress Controller
   tls:

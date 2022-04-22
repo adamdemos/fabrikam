@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: oauth2-proxy
+  name: oauth2-proxy
+  namespace: dex
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: oauth2-proxy
+  template:
+    metadata:
+      labels:
+        k8s-app: oauth2-proxy
+    spec:
+      containers:
+      - args:
+        - --cookie-secure=false
+        - --provider=oidc
+        - --client-id=kubernetes
+        - --client-secret=ZXhhbXBsZS1hcHAtc2VjcmV0
+        - --oidc-issuer-url=https://dex.sys.fabrikam.pl
+        - --http-address=0.0.0.0:8080
+        - --upstream=file:///dev/null
+        - --email-domain=*
+        - --set-authorization-header=true
+        env:
+        - name: OAUTH2_PROXY_COOKIE_SECRET
+          value: ekY5Vm9UYTF5R293RGVnbUk4eG5qUT09
+        image: bitnami/oauth2-proxy:latest
+        imagePullPolicy: IfNotPresent
+        name: oauth2-proxy
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    k8s-app: oauth2-proxy
+  name: oauth2-proxy
+  namespace: dex
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    k8s-app: oauth2-proxy  
