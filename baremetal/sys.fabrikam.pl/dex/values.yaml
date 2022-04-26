@@ -36,6 +36,14 @@ affinity:
           k8s-app: dex # We can't use variables in values file (Helm limitation) so we need to hardcode it and make sure it matches the app label. See nameOverride parameter above
       topologyKey: "kubernetes.io/hostname"
 
+# This is only needed if using secure way to pass AD user password using kubernetes secret and environment variable
+envVars:
+- name: BINDPW
+  valueFrom:
+    secretKeyRef:
+      name: ldap-reader-password
+      key: BINDPW
+
 config:
   # This URL has to match ingress config above
   issuer: https://dex.sys.fabrikam.pl
@@ -66,7 +74,10 @@ config:
 
       # AD user and password used to read AD. Should be low-priviledged user.
       bindDN: CN=LDAP reader,ou=Service accounts,ou=Fabrikam,dc=fabrikam,dc=pl
-      bindPW: menus-4rfDbe
+      # Password can be specified directly here.
+      # A better way is to specify environment variable that will hold this password with syntax: ${variable_name}
+      # Then store password as kubernetes secret and map secret to that ENV variable
+      bindPW: ${BINDPW}
 
       # Config for user search
       userSearch:
