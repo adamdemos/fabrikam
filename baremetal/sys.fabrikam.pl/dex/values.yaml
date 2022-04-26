@@ -1,10 +1,4 @@
-replicaCount: 2
-
 nameOverride: dex # this needs to match the k8s-app label selector in the affinity section below
-
-# This means the DEX service will use HTTPS (besides exposing DEX externally via ingress)
-#https:
-#  enabled: true
 
 # We need to pass AD domain Certification Authority certificate so DEX can use secure LDAPS to connect to AD LDAP server
 volumes:
@@ -32,6 +26,8 @@ ingress:
     - pathType: ImplementationSpecific
       path: /
 
+# for HA, specify 2 replicas and use anti-affinity to prevent both pods being scheduled on the same node
+replicaCount: 2
 affinity:
   podAntiAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
@@ -41,32 +37,33 @@ affinity:
       topologyKey: "kubernetes.io/hostname"
 
 config:
-  # Since we specified internal DEX service shall use HTTPS, here we specify certificate, that is mapped via volume/volumemount above
-  #web:
-  #  tlsCert: /certs/tls.crt
-  #  tlsKey: /certs/tls.key
+  # This URL has to match ingress config above
+  issuer: https://dex.sys.fabrikam.pl
+  oauth2:
+    # Skip additional "approve grant access" scren after user is authenticated
+    skipApprovalScreen: true
 
+# Configure DEX to run inside Kubernetes and use Kubernetes CRD as storage
   storage:
     type: kubernetes
     config: 
       inCluster: true
-
-  issuer: https://dex.sys.fabrikam.pl
 
   connectors:
   - type: ldap
     id: ldap
     name: ldap
     config:
-      # for plain LDAP
-      #host: fab-dc01-fabrikam.pl:389
-      #insecureNoSSL: true
-      #insecureSkipVerify: true
+
       # Secure LDAPS
       host: fab-dc01.fabrikam.pl:636
       rootCA: /certs/ad-ca.crt
       insecureNoSSL: false
       insecureSkipVerify: false
+      # for plain LDAP
+      #host: fab-dc01-fabrikam.pl:389
+      #insecureNoSSL: true
+      #insecureSkipVerify: true
 
       bindDN: CN=LDAP reader,ou=Service accounts,ou=Fabrikam,dc=fabrikam,dc=pl
       bindPW: Hiro2020!
@@ -100,6 +97,10 @@ config:
   staticClients:
   - id: kubernetes
     redirectURIs:
-    - 'http://localhost:8000'
+    # this one is for kubelogim plugin to kubectl
+    - http://localhost:8000
+    # this one is for Kubernetes Dashboard
+    - https://dashboard.sys.fabrikam.pl/oauth2/callback
     name: 'Kubernetes'
     secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+  

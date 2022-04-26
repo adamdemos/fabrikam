@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: "sys-fabrikam-pl-letsencrypt-prod" # use production cert issuer for sys.fabrikam.pl
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS" # inform ingress, backend service is using HTTPS
+    external-dns: sys.fabrikam.pl  # use external dns for sys.fabrikam.pl
+    # Annotations below are needed to enforce authentication
+    nginx.ingress.kubernetes.io/auth-url: "https://$host/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://$host/oauth2/start?rd=$escaped_request_uri"  
+    # These annotations inject authentication token into header. This is what allow Dashboard to log the user automatically
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      auth_request_set $token $upstream_http_authorization;
+      proxy_set_header Authorization $token;
+  name: dashboard-ingress
+  namespace: kubernetes-dashboard
+spec:
+  ingressClassName: sys-fab-pl-ing-ctrl # use specific Ingress Controller
+  tls:
+  - hosts:
+    - dashboard.sys.fabrikam.pl
+    secretName: dashboard.sys.fabrikam.pl # this will be the name of created certificate 
+  rules:
+  - host: dashboard.sys.fabrikam.pl
+    http:
+      paths:
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: kubernetes-dashboard
+            port:
+              number: 443

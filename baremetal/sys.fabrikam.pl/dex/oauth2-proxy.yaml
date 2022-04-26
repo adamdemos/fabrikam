@@ -18,18 +18,19 @@ spec:
       containers:
       - args:
         - --cookie-secure=false
+        - --cookie-secret=ekY5Vm9UYTF5R293RGVnbUk4eG5qUT09
         - --provider=oidc
+        # id and secret must match the static client configuration in DEX
         - --client-id=kubernetes
         - --client-secret=ZXhhbXBsZS1hcHAtc2VjcmV0
         - --oidc-issuer-url=https://dex.sys.fabrikam.pl
+        - --redirect-url=https://dashboard.sys.fabrikam.pl/oauth2/callback
         - --http-address=0.0.0.0:8080
         - --upstream=file:///dev/null
         - --email-domain=*
         - --set-authorization-header=true
-        env:
-        - name: OAUTH2_PROXY_COOKIE_SECRET
-          value: ekY5Vm9UYTF5R293RGVnbUk4eG5qUT09
-        image: bitnami/oauth2-proxy:latest
+        - --pass-authorization-header
+        image: quay.io/oauth2-proxy/oauth2-proxy:latest
         imagePullPolicy: IfNotPresent
         name: oauth2-proxy
         ports:
@@ -50,4 +51,4 @@ spec:
     protocol: TCP
     targetPort: 8080
   selector:
-    k8s-app: oauth2-proxy  
+    k8s-app: oauth2-proxy
