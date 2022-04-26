@@ -54,7 +54,6 @@ config:
     id: ldap
     name: ldap
     config:
-
       # Secure LDAPS
       host: fab-dc01.fabrikam.pl:636
       rootCA: /certs/ad-ca.crt
@@ -65,8 +64,10 @@ config:
       #insecureNoSSL: true
       #insecureSkipVerify: true
 
+      # AD user and password used to read AD. Should be low-priviledged user.
       bindDN: CN=LDAP reader,ou=Service accounts,ou=Fabrikam,dc=fabrikam,dc=pl
       bindPW: Hiro2020!
+
       # Config for user search
       userSearch:
         # Start search in this OU
