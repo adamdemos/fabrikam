@@ -1,0 +1,18 @@
+global:
+  name: consul
+  datacenter: consul
+
+client:
+  enabled: true
+
+server:
+  replicas: 3
+  storage: 10Gi  # Don't worry - this is max desired size as per docs. PV will be dynamically provisioned so actual size will be much smaller.
+
+  # This is ONLY NEEDED for test/debug/troubleshoot purposes so we can get shell access to Consul server container as root
+  securityContext:
+    runAsNonRoot: false
+    runAsGroup: 0
+    runAsUser: 0
+    fsGroup: 0
+  
