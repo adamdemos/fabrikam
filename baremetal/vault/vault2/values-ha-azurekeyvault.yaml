@@ -90,19 +90,19 @@ server:
         storage "raft" {
           path = "/vault/data"
             retry_join {
-            leader_api_addr = "https://vault-0.vault-internal:8200"
+            leader_api_addr = "https://vault2-0.vault2-internal:8200"
             leader_ca_cert_file = "/vault/userconfig/vault-ca-cert/tls.crt"
             leader_client_cert_file = "/vault/userconfig/vault-cert/tls.crt"
             leader_client_key_file = "/vault/userconfig/vault-cert/tls.key"
           }
           retry_join {
-            leader_api_addr = "https://vault-1.vault-internal:8200"
+            leader_api_addr = "https://vault2-1.vault2-internal:8200"
             leader_ca_cert_file = "/vault/userconfig/vault-ca-cert/tls.crt"
             leader_client_cert_file = "/vault/userconfig/vault-cert/tls.crt"
             leader_client_key_file = "/vault/userconfig/vault-cert/tls.key"
           }
           retry_join {
-            leader_api_addr = "https://vault-2.vault-internal:8200"
+            leader_api_addr = "https://vault2-2.vault2-internal:8200"
             leader_ca_cert_file = "/vault/userconfig/vault-ca-cert/tls.crt"
             leader_client_cert_file = "/vault/userconfig/vault-cert/tls.crt"
             leader_client_key_file = "/vault/userconfig/vault-cert/tls.key"
@@ -121,8 +121,8 @@ server:
 
         seal "azurekeyvault" {
           tenant_id       = "9116b818-f66e-46c4-be6b-79d931b8286b"
-          client_id       = "d9fa058c-c349-444d-8337-79565c050862"
-          client_secret   = "AAxZ64DoZBep__-_zDChgBztR3eZ1v7VrY"
+          client_id       = "317a6b58-633b-4968-a64e-00ba920bb2af"
+          client_secret   = "i6hInFd8JHRfpvqZyM2mdMy9_pQ7qa6.I-"
           vault_name      = "UnsealKeyVault"
           key_name        = "K1UnsealKey"
           subscription_id = "dd54c00a-ece0-443a-b1fd-e149c305dd8d"

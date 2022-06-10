@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    external-dns: sys.fabrikam.pl  # use external dns for sys.fabrikam.pl
+    cert-manager.io/cluster-issuer: "sys-fabrikam-pl-letsencrypt-prod" # use production cert issuer for sys.fabrikam.pl
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS" # inform ingress, backend service is using HTTPS
+  name: vault-ui-ingress
+  namespace: vault2
+spec:
+  ingressClassName: sys-fab-pl-ing-ctrl # use specific Ingress Controller
+  tls:
+  - hosts:
+    - vault2.sys.fabrikam.pl
+    secretName: vault2.sys.fabrikam.pl # this will be the name of created certificate 
+  rules:
+  - host: vault2.sys.fabrikam.pl
+    http:
+      paths:
+      - path: "/"
+        pathType: Prefix
+        backend:
+          service:
+            name: vault2-ui
+            port:
+              number: 8200

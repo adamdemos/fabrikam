@@ -1,6 +1,6 @@
 {
   "hosts": [
-    "vault-internal"
+    "vault2-internal"
   ],
   "key": {
     "algo": "rsa",
