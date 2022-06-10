@@ -57,10 +57,9 @@ server:
 #    - type: secret
 #      name: kms-creds
   
-  # This configures the Vault Statefulset to create a PVC for audit logs.
-  # See https://www.vaultproject.io/docs/audit/index.html to know more
   auditStorage:
-    enabled: true
+    enabled: false
+    # size: 500Mi
 
   standalone:
     enabled: false
