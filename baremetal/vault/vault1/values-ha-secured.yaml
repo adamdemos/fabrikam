@@ -54,17 +54,17 @@ server:
       name: vault-cert
     - type: secret
       name: vault-ca-cert
-#    - type: secret
-#      name: kms-creds
   
-  # This configures the Vault Statefulset to create a PVC for audit logs.
-  # See https://www.vaultproject.io/docs/audit/index.html to know more
   auditStorage:
-    enabled: true
+    enabled: false
 
   standalone:
     enabled: false
 
+  dataStorage:
+    enabled: true
+    size: 500Mi
+  
   # Run Vault in "HA" mode.
   ha:
     enabled: true
