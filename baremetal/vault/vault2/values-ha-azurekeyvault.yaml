@@ -46,6 +46,23 @@ server:
   # used to include variables required for auto-unseal.
   extraEnvironmentVars:
     VAULT_CACERT: /vault/userconfig/vault-ca-cert/tls.crt
+  extraSecretEnvironmentVars:
+    - envName: AZURE_TENANT_ID
+      secretName: azure-key-vault
+      secretKey: AZURE_TENANT_ID
+    - envName: AZURE_CLIENT_ID
+      secretName: azure-key-vault
+      secretKey: AZURE_CLIENT_ID
+    - envName: AZURE_CLIENT_SECRET
+      secretName: azure-key-vault
+      secretKey: AZURE_CLIENT_SECRET
+    - envName: VAULT_AZUREKEYVAULT_VAULT_NAME
+      secretName: azure-key-vault
+      secretKey: VAULT_AZUREKEYVAULT_VAULT_NAME
+    - envName: VAULT_AZUREKEYVAULT_KEY_NAME
+      secretName: azure-key-vault
+      secretKey: VAULT_AZUREKEYVAULT_KEY_NAME
+    
 
   # extraVolumes is a list of extra volumes to mount. These will be exposed
   # to Vault in the path `/vault/userconfig/<name>/`.
@@ -54,12 +71,9 @@ server:
       name: vault-cert
     - type: secret
       name: vault-ca-cert
-#    - type: secret
-#      name: kms-creds
   
   auditStorage:
     enabled: false
-    # size: 500Mi
 
   standalone:
     enabled: false
@@ -118,17 +132,10 @@ server:
 
         }
 
-        seal "azurekeyvault" {
-          tenant_id       = "9116b818-f66e-46c4-be6b-79d931b8286b"
-          client_id       = "317a6b58-633b-4968-a64e-00ba920bb2af"
-          client_secret   = "i6hInFd8JHRfpvqZyM2mdMy9_pQ7qa6.I-"
-          vault_name      = "UnsealKeyVault"
-          key_name        = "K1UnsealKey"
-          subscription_id = "dd54c00a-ece0-443a-b1fd-e149c305dd8d"
+        seal "azurekeyvault" {  
         }
 
-        service_registration "kubernetes" {}
-
+        service_registration "kubernetes" {}        
 # Vault UI
 ui:
   enabled: true
