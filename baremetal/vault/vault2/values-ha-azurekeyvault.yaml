@@ -133,6 +133,7 @@ server:
         }
 
         seal "azurekeyvault" {  
+        
         }
 
         service_registration "kubernetes" {}        

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app1
+  namespace: vault-demo1
+  labels:
+    app: app1
+spec:
+  selector:
+    matchLabels:
+      app: app1
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/tls-skip-verify: "true"
+        # This annotation instructs to inject vault secret into a pod as a file
+        # the file being injected is the last part of the annotation name. In our case the file will be called "secret1" mounted in "/vault/secrets" folder inside pod
+        # The value of annotation is the path in vault to secret being retriived
+        vault.hashicorp.com/agent-inject-secret-secret1: "demo1/secret1"
+        # Defines how to actually map vault secret data to a file inside pod
+        # In our case, the file "/vault/secrets/secret1" will have a JOSN format with 2 fields: username and password
+        # Both annonations must have the matching naming syntax: agent-inject-secret-<filename> and agent-inject-template-<filename>
+        vault.hashicorp.com/agent-inject-template-secret1: |
+          {{- with secret "demo1/secret1" -}}
+          {
+            "username" : "{{ .Data.username }}",
+            "password" : "{{ .Data.password }}"
+          }
+          {{- end }}
+        vault.hashicorp.com/role: "demo1-role" # Vault role
+      labels:
+        app: app1
+    spec:
+      serviceAccountName: demo1
+      containers:
+      - name: app1
+        image: jweissig/app:0.0.1
