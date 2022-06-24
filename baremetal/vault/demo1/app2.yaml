@@ -1,39 +1,48 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app1
+  name: app2
   namespace: vault-demo1
   labels:
-    app: app1
+    app: app2
 spec:
   selector:
     matchLabels:
-      app: app1
+      app: app2
   replicas: 1
   template:
     metadata:
       annotations:
+        vault.hashicorp.com/log-level: "debug"
+        # enable secret injection
         vault.hashicorp.com/agent-inject: "true"
-        vault.hashicorp.com/tls-skip-verify: "true"
+        # vault.hashicorp.com/tls-skip-verify: "true"
+        vault.hashicorp.com/ca-cert: "/vault/tls/tls.crt"
+        # vault.hashicorp.com/client-key: "/vault/tls/tls.key"
+        vault.hashicorp.com/tls-secret: "vault-ca-cert"
+        # if dynamic secret injection or renewal is NOT needed, add this to skip adding vault sidecar container
+        vault.hashicorp.com/agent-pre-populate-only: "true"
         # This annotation instructs to inject vault secret into a pod as a file
         # the file being injected is the last part of the annotation name. In our case the file will be called "secret1" mounted in "/vault/secrets" folder inside pod
-        # The value of annotation is the path in vault to secret being retriived
-        vault.hashicorp.com/agent-inject-secret-secret1: "demo1/secret1"
+        # The value of annotation is the path in vault to secret being retrieved
+        vault.hashicorp.com/agent-inject-secret-app2: "demo1/secret1"
         # Defines how to actually map vault secret data to a file inside pod
-        # In our case, the file "/vault/secrets/secret1" will have a JOSN format with 2 fields: username and password
+        # In this case, the file "/vault/secrets/app2" will contain shell EXPORT commands executed when application container starts. See command/spec config below
         # Both annonations must have the matching naming syntax: agent-inject-secret-<filename> and agent-inject-template-<filename>
-        vault.hashicorp.com/agent-inject-template-secret1: |
+        vault.hashicorp.com/agent-inject-template-app2: |
           {{- with secret "demo1/secret1" -}}
-          {
-            "username" : "{{ .Data.username }}",
-            "password" : "{{ .Data.password }}"
-          }
+            export SECRET1_USERNAME="{{ .Data.username }}"
+            export SECRET1_PASSWORD="{{ .Data.password }}"
           {{- end }}
         vault.hashicorp.com/role: "demo1-role" # Vault role
       labels:
-        app: app1
+        app: app2
     spec:
       serviceAccountName: demo1
       containers:
-      - name: app1
-        image: jweissig/app:0.0.1
+      - name: app2
+        image: ubuntu:latest
+        # We use custom start command. Before actual application being started we want BASH to run and execute commands stored in /vault/secrets/app2 file, effectively setting environment variables
+        command: ["/bin/bash"]
+        args:
+          ['-c', 'source /vault/secrets/app2 && env && tail -f /dev/null']
