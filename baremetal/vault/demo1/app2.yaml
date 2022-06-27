@@ -13,13 +13,14 @@ spec:
   template:
     metadata:
       annotations:
-        vault.hashicorp.com/log-level: "debug"
         # enable secret injection
         vault.hashicorp.com/agent-inject: "true"
+        # Doing proper secure vault agent to vault server communication with certificate check. Vault agent needs to have Vault CA cert specified so it will trust and accept vault server certificate
         # vault.hashicorp.com/tls-skip-verify: "true"
-        vault.hashicorp.com/ca-cert: "/vault/tls/tls.crt"
-        # vault.hashicorp.com/client-key: "/vault/tls/tls.key"
+        # This is a secret where Vault CA certificate is passed to agent
         vault.hashicorp.com/tls-secret: "vault-ca-cert"
+        # And this is a certificate within the secret
+        vault.hashicorp.com/ca-cert: "/vault/tls/tls.crt"
         # if dynamic secret injection or renewal is NOT needed, add this to skip adding vault sidecar container
         vault.hashicorp.com/agent-pre-populate-only: "true"
         # This annotation instructs to inject vault secret into a pod as a file
