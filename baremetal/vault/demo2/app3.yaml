@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app3
+  namespace: vault-demo2
+  labels:
+    app: app3
+spec:
+  selector:
+    matchLabels:
+      app: app3
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        # enable secret injection
+        vault.hashicorp.com/agent-inject: "true"
+        # Doing proper secure vault agent to vault server communication with certificate check. Vault agent needs to have Vault CA cert specified so it will trust and accept vault server certificate
+        # vault.hashicorp.com/tls-skip-verify: "true"
+        # This is a secret where Vault CA certificate is passed to agent
+        vault.hashicorp.com/tls-secret: "vault-ca-cert"
+        # And this is a certificate within the secret
+        vault.hashicorp.com/ca-cert: "/vault/tls/tls.crt"
+        # use init container to ensure, secrets are created before actual app container starts
+        vault.hashicorp.com/agent-pre-populate: "true"
+        # dynamic secret injection or renewal is NEEDED, so we need a sidecar container running all the time
+        vault.hashicorp.com/agent-pre-populate-only: "false"
+        # to elimiate duplicate secrets, let vault agent and agent init container to share secrets and tokens
+        vault.hashicorp.com/agent-cache-enable: "true"
+        # This annotation instructs to inject vault secret into a pod as a file
+        # the file being injected is the last part of the annotation name. In our case the file will be called "setenv" mounted in "/vault/secrets" folder inside pod
+        # NOTE: The value of annotation is the path in vault, but instead of pointing it to static secret, it points to dynamic role that generates secret
+        vault.hashicorp.com/agent-inject-secret-setenv: "demo2/creds/demo2-role"
+        # Defines how to actually map vault secret data to a file inside pod
+        # In this case, the file "/vault/secrets/setenv" will contain shell EXPORT commands executed when application container starts. See command/spec config below
+        # Both annonations must have the matching naming syntax: agent-inject-secret-<filename> and agent-inject-template-<filename>
+        vault.hashicorp.com/agent-inject-template-setenv: |
+          {{- with secret "demo2/creds/demo2-role" -}}
+            export SQL_USERNAME="{{ .Data.username }}"
+            export SQL_PASSWORD="{{ .Data.password }}"
+          {{- end }}
+        vault.hashicorp.com/role: "demo2-role" # Vault role
+      labels:
+        app: app3
+    spec:
+      serviceAccountName: demo2
+      containers:
+      - name: app3
+        image: mcr.microsoft.com/mssql-tools
+        # We use custom start command. Before actual application being started we want BASH to run and execute commands stored in /vault/secrets/app2 file, effectively setting environment variables
+        command: ["/bin/bash"]
+        args:
+          ['-c', 'source /vault/secrets/setenv && env && /opt/mssql-tools/bin/sqlcmd -S sqldb-service.vault-demo2 -d demo2 -U $SQL_USERNAME -P $SQL_PASSWORD -Q "SELECT cast(SUSER_NAME() as varchar(68)) as [login], cast(CURRENT_USER as varchar(68)) as [user]" && tail -f /dev/null']
