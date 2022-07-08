@@ -42,10 +42,19 @@ server:
     path: "/v1/sys/health?standbyok=true"
     initialDelaySeconds: 60
 
-  # extraEnvironmentVars is a list of extra environment variables to set with the stateful set. These could be
-  # used to include variables required for auto-unseal.
+# extraVolumes is a list of extra volumes to mount. These will be exposed
+  # to Vault in the path `/vault/userconfig/<name>/`.
+  extraVolumes:
+    - type: secret
+      name: vault-cert
+    - type: secret
+      name: vault-ca-cert
+  
+  # Pass kubernetes secret with Vault CA certificate as environment variable. Secert was mounted as volume above
   extraEnvironmentVars:
     VAULT_CACERT: /vault/userconfig/vault-ca-cert/tls.crt
+
+  # Set environment variables needed for Auto unsealing using Azure Key Vault. 
   extraSecretEnvironmentVars:
     - envName: AZURE_TENANT_ID
       secretName: azure-key-vault
@@ -62,15 +71,6 @@ server:
     - envName: VAULT_AZUREKEYVAULT_KEY_NAME
       secretName: azure-key-vault
       secretKey: VAULT_AZUREKEYVAULT_KEY_NAME
-    
-
-  # extraVolumes is a list of extra volumes to mount. These will be exposed
-  # to Vault in the path `/vault/userconfig/<name>/`.
-  extraVolumes:
-    - type: secret
-      name: vault-cert
-    - type: secret
-      name: vault-ca-cert
   
   auditStorage:
     enabled: false
@@ -140,11 +140,6 @@ server:
 # Vault UI
 ui:
   enabled: true
-  serviceType: "LoadBalancer"
+  serviceType: "ClusterIP"
   serviceNodePort: null
   externalPort: 8200
-
-  # For Added Security, edit the below
-  #loadBalancerSourceRanges:
-  #   - < Your IP RANGE Ex. 10.0.0.0/16 >
-  #   - < YOUR SINGLE IP Ex. 1.78.23.3/32 >

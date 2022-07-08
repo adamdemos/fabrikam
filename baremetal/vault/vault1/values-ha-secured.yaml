@@ -68,7 +68,7 @@ server:
   # Run Vault in "HA" mode.
   ha:
     enabled: true
-    replicas: 5
+    replicas: 3
     raft:
       enabled: true
       setNodeId: true
@@ -103,25 +103,13 @@ server:
             leader_client_cert_file = "/vault/userconfig/vault-cert/tls.crt"
             leader_client_key_file = "/vault/userconfig/vault-cert/tls.key"
           }
-          retry_join {
-              leader_api_addr = "https://vault-3.vault-internal:8200"
-              leader_ca_cert_file = "/vault/userconfig/vault-ca-cert/tls.crt"
-              leader_client_cert_file = "/vault/userconfig/vault-cert/tls.crt"
-              leader_client_key_file = "/vault/userconfig/vault-cert/tls.key"
-          }
-          retry_join {
-              leader_api_addr = "https://vault-4.vault-internal:8200"
-              leader_ca_cert_file = "/vault/userconfig/vault-ca-cert/tls.crt"
-              leader_client_cert_file = "/vault/userconfig/vault-cert/tls.crt"
-              leader_client_key_file = "/vault/userconfig/vault-cert/tls.key"
-          }
 
            autopilot {
             cleanup_dead_servers = "true"
             last_contact_threshold = "200ms"
             last_contact_failure_threshold = "10m"
             max_trailing_logs = 250000
-            min_quorum = 5
+            min_quorum = 3
             server_stabilization_time = "10s"
           }
 
@@ -132,11 +120,6 @@ server:
 # Vault UI
 ui:
   enabled: true
-  serviceType: "LoadBalancer"
+  serviceType: "ClusterIP"
   serviceNodePort: null
   externalPort: 8200
-
-  # For Added Security, edit the below
-  #loadBalancerSourceRanges:
-  #   - < Your IP RANGE Ex. 10.0.0.0/16 >
-  #   - < YOUR SINGLE IP Ex. 1.78.23.3/32 >

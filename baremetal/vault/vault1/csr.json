@@ -1,11 +1,7 @@
 {
-  "CN": "Fabrikam Vault CA",
   "key": {
     "algo": "rsa",
     "size": 2048
-  },
-  "ca" : {
-    "expiry": "175200h"
   },
   "names": [
     {
