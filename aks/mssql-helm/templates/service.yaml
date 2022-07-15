@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mssql-latest.fullname" . }}
+  labels:
+{{- include "mssql-latest.labels" . | nindent 4 }}
+  annotations:
+  # AzureInternalLoadBalancer is our custom option. When set, it deploys service with LoadBalancer type and also adds custom annotations to instruct Azure
+  {{- if eq .Values.service.type "AzureInternalLoadBalancer" }}
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+    service.beta.kubernetes.io/azure-pls-create: "true"
+  {{- end }}
+spec:
+{{- if eq .Values.service.type "AzureInternalLoadBalancer" }}
+  type: LoadBalancer
+{{- else }}  
+  type: {{ .Values.service.type }}
+{{- end }}  
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
+      protocol: TCP
+  selector:
+    {{- include "mssql-latest.selectorLabels" . | nindent 4 }}
