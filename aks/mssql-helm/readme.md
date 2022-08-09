@@ -13,7 +13,7 @@ This is MSSQL Helm chart based on offical MS chart from https://github.com/micro
 
 |     Configuration parameters                 |     Description                                                                                                                      | Value                              |
 |----------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
-|     Values.service.type                      |     The value 'AzureInternalLoadBalancer' will instructu Azure to expose this pod using Azure internalLB.                            |     AzureInternalLoadBalancer      |
+|     Values.service.type                      |     The value 'AzureInternalLoadBalancer' will instruct Azure to expose this pod using Azure internalLB.                             |     AzureInternalLoadBalancer      |
 |                                              |     NOTE: You need to have Azure private networking in place to make usage of internal LB                                            |                                    |
   
 ## Other parameters
